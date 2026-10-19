@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 using VoxelSandbox.World;
+using VoxelSandbox.Core;
 
 namespace VoxelSandbox.Multiplayer
 {
@@ -51,6 +52,7 @@ namespace VoxelSandbox.Multiplayer
         {
             if (!IsClient) return;
             Debug.Log($"[ChunkNetworkBehaviour] Received chunk data for {position} ({flatData?.Length ?? 0} bytes)");
+            // Apply placeholder for iteration 0.2: real apply deferred to 0.3
         }
 
         [ServerRpc(RequireOwnership = true)]
@@ -76,7 +78,6 @@ namespace VoxelSandbox.Multiplayer
         }
     }
 
-    public static class ChunkSerializer
     {
         private static readonly int Size = Chunk.Size;
         private static readonly int Stride = Size * Size * Size;
