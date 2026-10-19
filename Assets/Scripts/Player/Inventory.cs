@@ -12,6 +12,8 @@ namespace VoxelSandbox.Player
             Capacity = capacity;
         }
 
+        public IReadOnlyDictionary<int, int> Items => _items;
+
         public bool AddItem(int id, int count)
         {
             if (_items.ContainsKey(id))

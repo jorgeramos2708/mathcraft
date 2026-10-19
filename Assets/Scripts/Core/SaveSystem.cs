@@ -1,11 +1,59 @@
 using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
+using VoxelSandbox.Player;
 
 namespace VoxelSandbox.Core
 {
     public static class SaveSystem
     {
         public static string SavePath => Path.Combine(Application.persistentDataPath, "world.json");
+        public static string PlayerStatsPath => Path.Combine(Application.persistentDataPath, "player_stats.json");
+        public static string InventoryPath => Path.Combine(Application.persistentDataPath, "inventory.json");
+        public static string RewardsPath => Path.Combine(Application.persistentDataPath, "rewards.json");
+
+        public static void SavePlayerStats(Stats stats)
+        {
+            var data = new StatsData { Health = stats.Health, Hunger = stats.Hunger };
+            string json = JsonUtility.ToJson(data);
+            File.WriteAllText(PlayerStatsPath, json);
+        }
+
+        public static Stats LoadPlayerStats()
+        {
+            if (!File.Exists(PlayerStatsPath)) return new Stats();
+            string json = File.ReadAllText(PlayerStatsPath);
+            var data = JsonUtility.FromJson<StatsData>(json);
+            return new Stats(data.Health, data.Hunger);
+        }
+
+        public static void SaveInventory(Inventory inventory)
+        {
+            var items = new List<InventoryItem>();
+            foreach (var kv in inventory.Items)
+            {
+                items.Add(new InventoryItem { Id = kv.Key, Count = kv.Value });
+            }
+            var data = new InventoryData { Items = items };
+            string json = JsonUtility.ToJson(data);
+            File.WriteAllText(InventoryPath, json);
+        }
+
+        public static Inventory LoadInventory()
+        {
+            var inventory = new Inventory();
+            if (!File.Exists(InventoryPath)) return inventory;
+            string json = File.ReadAllText(InventoryPath);
+            var data = JsonUtility.FromJson<InventoryData>(json);
+            if (data?.Items != null)
+            {
+                foreach (var item in data.Items)
+                {
+                    inventory.AddItem(item.Id, item.Count);
+                }
+            }
+            return inventory;
+        }
 
         public static void SaveChunk(Chunk chunk, string path)
         {
@@ -43,24 +91,42 @@ namespace VoxelSandbox.Core
 
         public static void SaveRewards(HashSet<string> rewards)
         {
-            string path = Path.Combine(Application.persistentDataPath, "rewards.json");
             string json = JsonUtility.ToJson(new RewardsData { Items = new List<string>(rewards) });
-            File.WriteAllText(path, json);
+            File.WriteAllText(RewardsPath, json);
         }
 
         public static HashSet<string> LoadRewards()
         {
-            string path = Path.Combine(Application.persistentDataPath, "rewards.json");
-            if (!File.Exists(path)) return new HashSet<string>();
-            string json = File.ReadAllText(path);
+            if (!File.Exists(RewardsPath)) return new HashSet<string>();
+            string json = File.ReadAllText(RewardsPath);
             var data = JsonUtility.FromJson<RewardsData>(json);
-            return new HashSet<string>(data.Items);
+            return new HashSet<string>(data?.Items ?? new List<string>());
         }
 
         [System.Serializable]
         private class RewardsData
         {
             public List<string> Items;
+        }
+
+        [System.Serializable]
+        private class StatsData
+        {
+            public int Health;
+            public int Hunger;
+        }
+
+        [System.Serializable]
+        private class InventoryItem
+        {
+            public int Id;
+            public int Count;
+        }
+
+        [System.Serializable]
+        private class InventoryData
+        {
+            public List<InventoryItem> Items;
         }
 
         [System.Serializable]

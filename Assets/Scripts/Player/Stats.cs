@@ -5,6 +5,17 @@ namespace VoxelSandbox.Player
         public int Health { get; private set; } = 100;
         public int Hunger { get; private set; } = 100;
 
+        public Stats() { }
+
+        public Stats(int health, int hunger)
+        {
+            Health = health;
+            Hunger = hunger;
+        }
+
+        public void SetHealth(int value) => Health = Mathf.Clamp(value, 0, 100);
+        public void SetHunger(int value) => Hunger = Mathf.Clamp(value, 0, 100);
+
         public void TakeDamage(int amount)
         {
             Health = Mathf.Max(0, Health - amount);

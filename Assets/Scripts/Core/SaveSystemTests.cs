@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using System.IO;
+using VoxelSandbox.Player;
 
 namespace VoxelSandbox.Core
 {
@@ -23,6 +24,46 @@ namespace VoxelSandbox.Core
             Assert.AreEqual(9, loaded.GetBlock(0,0,0));
 
             File.Delete(path);
+        }
+
+        [Test]
+        public void SaveAndLoadPlayerStats_RoundTrip()
+        {
+            var stats = new Stats(75, 40);
+            SaveSystem.SavePlayerStats(stats);
+            var loaded = SaveSystem.LoadPlayerStats();
+            Assert.AreEqual(75, loaded.Health);
+            Assert.AreEqual(40, loaded.Hunger);
+            // Cleanup
+            File.Delete(SaveSystem.PlayerStatsPath);
+        }
+
+        [Test]
+        public void SaveAndLoadInventory_RoundTrip()
+        {
+            var inv = new Inventory();
+            inv.AddItem(1, 10);
+            inv.AddItem(2, 5);
+            SaveSystem.SaveInventory(inv);
+            var loaded = SaveSystem.LoadInventory();
+            Assert.AreEqual(10, loaded.GetCount(1));
+            Assert.AreEqual(5, loaded.GetCount(2));
+            Assert.AreEqual(0, loaded.GetCount(999));
+            // Cleanup
+            File.Delete(SaveSystem.InventoryPath);
+        }
+
+        [Test]
+        public void SaveAndLoadRewards_RoundTrip()
+        {
+            var rewards = new System.Collections.Generic.HashSet<string> { "reward_a", "reward_b" };
+            SaveSystem.SaveRewards(rewards);
+            var loaded = SaveSystem.LoadRewards();
+            Assert.IsTrue(loaded.Contains("reward_a"));
+            Assert.IsTrue(loaded.Contains("reward_b"));
+            Assert.AreEqual(2, loaded.Count);
+            // Cleanup
+            File.Delete(SaveSystem.RewardsPath);
         }
     }
 }
