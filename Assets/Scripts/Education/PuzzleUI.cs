@@ -4,22 +4,17 @@ namespace VoxelSandbox.Education
 {
     public class PuzzleUI : MonoBehaviour
     {
-        private ProblemGenerator _gen = new ProblemGenerator();
-        private RewardManager _rewards = new RewardManager();
+        private MathController _controller = new MathController();
 
         public void ShowPuzzle(int level)
         {
-            var p = _gen.Generate(level);
+            var p = _controller.GetProblem(level);
             Debug.Log($"Solve: {p.a} {p.op} {p.b} = ?");
         }
 
-        public void SubmitAnswer(int level, int answer)
+        public void SubmitAnswer(int level, int a, int b, char op, int answer)
         {
-            var p = _gen.Generate(level);
-            if (MathService.CheckAnswer(p.a, p.b, p.op, answer))
-            {
-                _rewards.Unlock($"map_level_{level}");
-            }
+            _controller.SubmitAnswer(level, a, b, op, answer);
         }
     }
 }

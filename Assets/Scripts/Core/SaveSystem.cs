@@ -41,6 +41,28 @@ namespace VoxelSandbox.Core
             return chunk;
         }
 
+        public static void SaveRewards(HashSet<string> rewards)
+        {
+            string path = Path.Combine(Application.persistentDataPath, "rewards.json");
+            string json = JsonUtility.ToJson(new RewardsData { Items = new List<string>(rewards) });
+            File.WriteAllText(path, json);
+        }
+
+        public static HashSet<string> LoadRewards()
+        {
+            string path = Path.Combine(Application.persistentDataPath, "rewards.json");
+            if (!File.Exists(path)) return new HashSet<string>();
+            string json = File.ReadAllText(path);
+            var data = JsonUtility.FromJson<RewardsData>(json);
+            return new HashSet<string>(data.Items);
+        }
+
+        [System.Serializable]
+        private class RewardsData
+        {
+            public List<string> Items;
+        }
+
         [System.Serializable]
         private class ChunkData
         {
