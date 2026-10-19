@@ -52,7 +52,19 @@ namespace VoxelSandbox.Multiplayer
         {
             if (!IsClient) return;
             Debug.Log($"[ChunkNetworkBehaviour] Received chunk data for {position} ({flatData?.Length ?? 0} bytes)");
-            // Apply placeholder for iteration 0.2: real apply deferred to 0.3
+            if (flatData == null || flatData.Length == 0)
+            {
+                Debug.LogWarning("[ChunkNetworkBehaviour] Received empty chunk data");
+                return;
+            }
+
+            if (_chunk == null)
+            {
+                _chunk = new Chunk(position);
+            }
+
+            Core.ChunkSerializer.Unflatten(flatData, _chunk.Blocks);
+            Debug.Log($"[ChunkNetworkBehaviour] Applied chunk data for {position} on client");
         }
 
         [ServerRpc(RequireOwnership = true)]
@@ -75,33 +87,6 @@ namespace VoxelSandbox.Multiplayer
             if (!IsServer) return;
             _chunk = chunk;
             ChunkPosition.Value = chunk?.Position ?? Vector3Int.zero;
-        }
-    }
-
-    {
-        private static readonly int Size = Chunk.Size;
-        private static readonly int Stride = Size * Size * Size;
-
-        public static byte[] Flatten(byte[,,] blocks)
-        {
-            if (blocks == null) return new byte[0];
-            byte[] flat = new byte[Stride];
-            int idx = 0;
-            for (int x = 0; x < Size; x++)
-                for (int y = 0; y < Size; y++)
-                    for (int z = 0; z < Size; z++)
-                        flat[idx++] = blocks[x, y, z];
-            return flat;
-        }
-
-        public static void Unflatten(byte[] flat, byte[,,] blocks)
-        {
-            if (flat == null || flat.Length != Stride) return;
-            int idx = 0;
-            for (int x = 0; x < Size; x++)
-                for (int y = 0; y < Size; y++)
-                    for (int z = 0; z < Size; z++)
-                        blocks[x, y, z] = flat[idx++];
         }
     }
 }
