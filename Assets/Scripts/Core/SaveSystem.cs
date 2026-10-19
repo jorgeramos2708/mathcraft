@@ -1,16 +1,25 @@
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VoxelSandbox.Player;
 
 namespace VoxelSandbox.Core
 {
+    [System.Serializable]
+    public class AchievementProgress
+    {
+        public int Level;
+        public int Progress;
+    }
+
     public static class SaveSystem
     {
         public static string SavePath => Path.Combine(Application.persistentDataPath, "world.json");
         public static string PlayerStatsPath => Path.Combine(Application.persistentDataPath, "player_stats.json");
         public static string InventoryPath => Path.Combine(Application.persistentDataPath, "inventory.json");
         public static string RewardsPath => Path.Combine(Application.persistentDataPath, "rewards.json");
+        public static string AchievementsPath => Path.Combine(Application.persistentDataPath, "achievements.json");
 
         public static void SavePlayerStats(Stats stats)
         {
@@ -101,6 +110,43 @@ namespace VoxelSandbox.Core
             string json = File.ReadAllText(RewardsPath);
             var data = JsonUtility.FromJson<RewardsData>(json);
             return new HashSet<string>(data?.Items ?? new List<string>());
+        }
+
+        public static void SaveAchievements(Dictionary<string, AchievementProgress> achievements)
+        {
+            var items = achievements.Select(kv => new AchievementData { Id = kv.Key, Level = kv.Value.Level, Progress = kv.Value.Progress }).ToList();
+            string json = JsonUtility.ToJson(new AchievementsData { Items = items });
+            File.WriteAllText(AchievementsPath, json);
+        }
+
+        public static Dictionary<string, AchievementProgress> LoadAchievements()
+        {
+            if (!File.Exists(AchievementsPath)) return new Dictionary<string, AchievementProgress>();
+            string json = File.ReadAllText(AchievementsPath);
+            var data = JsonUtility.FromJson<AchievementsData>(json);
+            var dict = new Dictionary<string, AchievementProgress>();
+            if (data?.Items != null)
+            {
+                foreach (var item in data.Items)
+                {
+                    dict[item.Id] = new AchievementProgress { Level = item.Level, Progress = item.Progress };
+                }
+            }
+            return dict;
+        }
+
+        [System.Serializable]
+        private class AchievementData
+        {
+            public string Id;
+            public int Level;
+            public int Progress;
+        }
+
+        [System.Serializable]
+        private class AchievementsData
+        {
+            public List<AchievementData> Items;
         }
 
         [System.Serializable]
