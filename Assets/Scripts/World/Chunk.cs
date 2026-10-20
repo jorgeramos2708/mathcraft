@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace VoxelSandbox.World
@@ -14,16 +15,31 @@ namespace VoxelSandbox.World
             Blocks = new byte[Size, Size, Size];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte GetBlock(int x, int y, int z)
         {
-            if (x < 0 || x >= Size || y < 0 || y >= Size || z < 0 || z >= Size) return 0;
+            if ((uint)x >= (uint)Size || (uint)y >= (uint)Size || (uint)z >= (uint)Size || x < 0 || y < 0 || z < 0)
+                return 0;
             return Blocks[x, y, z];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetBlock(int x, int y, int z, byte id)
         {
-            if (x < 0 || x >= Size || y < 0 || y >= Size || z < 0 || z >= Size) return;
+            if ((uint)x >= (uint)Size || (uint)y >= (uint)Size || (uint)z >= (uint)Size || x < 0 || y < 0 || z < 0)
+                return;
             Blocks[x, y, z] = id;
+        }
+
+        public void Clear()
+        {
+            // Clear without reallocating the array to avoid GC pressure
+            System.Array.Clear(Blocks, 0, Blocks.Length);
+        }
+
+        public void SetPosition(Vector3Int position)
+        {
+            Position = position;
         }
     }
 }
